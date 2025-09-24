@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36429.23 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreditAnalysis", "CreditAnalysis\CreditAnalysis.csproj", "{F3018B29-45B1-4E02-A44D-833B5C5BDCFD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreditAnalysis.Tests", "CreditAnalysis.Tests\CreditAnalysis.Tests.csproj", "{5F0F6A33-6D60-45ED-B18A-D264BF3A26A2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F3018B29-45B1-4E02-A44D-833B5C5BDCFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3018B29-45B1-4E02-A44D-833B5C5BDCFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3018B29-45B1-4E02-A44D-833B5C5BDCFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3018B29-45B1-4E02-A44D-833B5C5BDCFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F0F6A33-6D60-45ED-B18A-D264BF3A26A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F0F6A33-6D60-45ED-B18A-D264BF3A26A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F0F6A33-6D60-45ED-B18A-D264BF3A26A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F0F6A33-6D60-45ED-B18A-D264BF3A26A2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F2D377D6-9E84-4D11-A396-D1046FEE6886}
+	EndGlobalSection
+EndGlobal
