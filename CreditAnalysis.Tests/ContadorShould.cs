@@ -55,5 +55,9 @@ namespace CreditAnalysis.Tests
                 return contador++;
             }
         }
+
+
+        // Fronteiras <- estado
+        // Branca <- comportamento
     }
 }

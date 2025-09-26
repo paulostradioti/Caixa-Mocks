@@ -1,5 +1,4 @@
 using CreditAnalysis.CreditCardRequest;
-using CreditAnalysis.Interfaces;
 using Moq;
 using Moq.Protected;
 
@@ -9,44 +8,33 @@ namespace CreditAnalysis.Tests
     {
         CreditCardRequestProcessor sut;
 
-        Mock<ICreditScoreProvider> creditScoreProviderMock;
-        Mock<IRiskProvider> riskProviderMock;
-        Mock<IDependencyService> userServiceMock;
-
         public CreditCardRequestProcessorShould()
         {
-            creditScoreProviderMock = new();
-            riskProviderMock = new();
-            userServiceMock = new();
-
-            sut = new(creditScoreProviderMock.Object, riskProviderMock.Object, userServiceMock.Object);
+            sut = new(creditScoreProviderMock.Object, riskProviderMock.Object, dependencyService.Object, loggerMock.Object);
         }
 
         [Fact]
         public void ReturnRejectedByDefault()
         {
-            // Arrange
-            creditScoreProviderMock.Setup(x => x.GetScoreByCpf("123456789")).Returns(400);
-            creditScoreProviderMock.Setup(x => x.GetScoreByCpf("987654321")).Returns(600);
-            var request = new AnalysisRequest() { CPF = "123456789" };
-
             //Act
-            var response = sut.Process(request);
-
-            var request2 = new AnalysisRequest() { CPF = "987654321" };
-            var response2 = sut.Process(request2);
+            var response = sut.Process(default);
 
             // Assert
             Assert.Equal(AnalysisResponse.Rejected, response);
+
+            loggerMock.Verify(x => x.LogDebug(It.IsAny<string>()), Times.Exactly(2));
+            loggerMock.Verify(x => x.LogDebug(It.IsAny<string>()), Times.AtLeastOnce);
+            loggerMock.Verify(x => x.LogDebug(It.IsAny<string>()), Times.AtLeast(2));
+            loggerMock.Verify(x => x.LogDebug(It.IsAny<string>()), Times.AtMost(2));
         }
 
         [Fact]
         public void AutoRejectLowCreditScores()
         {
-            creditScoreProviderMock.Setup(x => x.GetScoreByCpf(It.IsAny<string>())).Returns(100);
+            SetupScore(CPF_FOR_LOW_SCORE, SCORE_LOW);
 
-            //Act 
-            var response = sut.Process(default);
+            //Act
+            var response = sut.Process(new AnalysisRequest { CPF = CPF_FOR_LOW_SCORE });
 
             // Assert
             Assert.Equal(AnalysisResponse.Rejected, response);
@@ -55,10 +43,10 @@ namespace CreditAnalysis.Tests
         [Fact]
         public void AutoApproveHightCreditScores()
         {
-            creditScoreProviderMock.Setup(x => x.GetScoreByCpf(It.IsAny<string>())).Returns(990);
+            SetupScore(CPF_FOR_HIGH_SCORE, SCORE_HIGH);
 
             //Act 
-            var response = sut.Process(default);
+            var response = sut.Process(new AnalysisRequest { CPF = CPF_FOR_HIGH_SCORE });
 
             // Assert
             Assert.Equal(AnalysisResponse.Approved, response);
@@ -88,7 +76,6 @@ namespace CreditAnalysis.Tests
         [InlineData(60, AnalysisResponse.Rejected)]
         public void AutoRespondBasedOnRisk(int idade, AnalysisResponse expected)
         {
-            creditScoreProviderMock.Setup(x => x.GetScoreByCpf(It.IsAny<string>())).Returns(400);
             riskProviderMock.Setup(x => x.GetRisk(It.IsInRange(30, 50, Moq.Range.Inclusive))).Returns(Enums.CreditRisk.Low);
             riskProviderMock.Setup(x => x.GetRisk(It.IsInRange(51, int.MaxValue, Moq.Range.Inclusive))).Returns(Enums.CreditRisk.High);
 
@@ -108,8 +95,6 @@ namespace CreditAnalysis.Tests
         [InlineData(10, AnalysisResponse.Rejected)]
         public void AutoRespondBasedOnAge(int idade, AnalysisResponse expected)
         {
-            creditScoreProviderMock.Setup(x => x.GetScoreByCpf(It.IsAny<string>())).Returns(400);
-            
             riskProviderMock.Setup(x => x.GetRisk(It.IsAny<int>())).Returns(Enums.CreditRisk.High);
             riskProviderMock.Setup(x => x.GetRisk(It.IsIn(30, 40, 50))).Returns(Enums.CreditRisk.Low);
 
@@ -129,9 +114,9 @@ namespace CreditAnalysis.Tests
             creditScoreProviderMock.Setup(x => x.GetScoreByCpf(It.IsAny<string>())).Returns(0);
             creditScoreProviderMock.Setup(x => x.GetScoreByCpf(It.IsRegex(@"^[0-9]+$"))).Returns(1000);
 
-            var request = new AnalysisRequest { CPF = cpf};
+            var request = new AnalysisRequest { CPF = cpf };
             var response = sut.Process(request);
-            
+
             Assert.Equal(expected, response);
         }
 
@@ -153,15 +138,15 @@ namespace CreditAnalysis.Tests
         [Fact]
         public void MockPropertyCallChain()
         {
-            creditScoreProviderMock.Setup(x => x.GetScoreByCpf(It.IsAny<string>())).Returns(400);
-            riskProviderMock.Setup(x => x.GetRisk(It.IsAny<int?>())).Returns(Enums.CreditRisk.Medium);
-            userServiceMock.SetupProperty(x => x.Objeto1.Objeto2.IsVip, true);
-
+            dependencyService.SetupProperty(x => x.Objeto1.Objeto2.IsVip, true);
             //userServiceMock.SetupAllProperties();
 
             var response = sut.Process(default);
 
             Assert.Equal(AnalysisResponse.Approved, response);
+
+            dependencyService.VerifyGet(x => x.Objeto1.Objeto2.IsVip, Times.Once);
+            dependencyService.VerifySet(x => x.Objeto1.Objeto2.IsVip = false, Times.Never);
         }
 
         [Fact]
@@ -172,12 +157,12 @@ namespace CreditAnalysis.Tests
 
             //var instancia = new AnalysisRequest();
             //var resultado = instancia.ChamaMetodoProtected(100);
-            
+
             var analysisRequestMock = new Mock<AnalysisRequest>();
             analysisRequestMock.Protected().Setup<string>("MyProtected", ItExpr.IsAny<int>()).Returns("My Protected Method Mocked!");
 
             var result = analysisRequestMock.Object.ChamaMetodoProtected(100);
-            
+
             Assert.True(result.Length > 0);
         }
     }
